@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+# Usage:
+# $ ./wrapsync <pull/push> <dir/all> [options]
+#
+# NOTE:
+# Options must include no white space. I.e. use `--option=abcd` rather than `--option = abcd`.
+#
+# Create a symlink for convenience:
+# $ ln -s "$(pwd)/wrapsync" /usr/local/bin/ws
+# $ ws help
+#
+# Examples:
+# $ ws push linux --update
+# $ ws pull windows --delete
+# $ ws push all
+
+readonly USERNAME='CHANGE_ME'
+readonly WRAPSYNC_PARENT_PARENT_DIR_PATH="${USERNAME}@ssh.CHANGE_ME"
+readonly WRAPSYNC_PARENT_DIR_PATH="CHANGE_ME"
+readonly LOCAL_PARENT_PARENT_DIR_PATH="CHANGE_ME"
+readonly LOCAL_PARENT_DIR_PATH="CHANGE_ME"
+readonly FLAGS='aP'
+readonly EXCLUDE=(
+)
+readonly ACTION="$(echo "${1}" | tr '[:upper:]' '[:lower:]')"
+readonly DIR_NAME="${2}"
+
+readonly TXT_RED="$(tput setaf 1)"
+readonly TXT_GREEN="$(tput setaf 2)"
+readonly TXT_YELLOW="$(tput setaf 3)"
+readonly TXT_BOLD="$(tput bold)"
+readonly TXT_RESET="$(tput sgr0)"
+
+function usage() {
+	printf "${TXT_BOLD}Usage:${TXT_RESET}
+$ wrapsync <${TXT_YELLOW}${TXT_BOLD}action${TXT_RESET}> \
+<${TXT_YELLOW}${TXT_BOLD}dir${TXT_RESET}> \
+[${TXT_YELLOW}${TXT_BOLD}options${TXT_RESET}]
+
+${TXT_YELLOW}${TXT_BOLD}action${TXT_RESET}: pull/push
+${TXT_YELLOW}${TXT_BOLD}dir${TXT_RESET}: all/directory under ${LOCAL_PARENT_PARENT_DIR_PATH}
+${TXT_YELLOW}${TXT_BOLD}options${TXT_RESET}: any option available to rsync, e.g. \
+--delete/--update/etc.\n"
+}
+
+function raise_error() {
+	printf "${TXT_RED}${TXT_BOLD}ERROR: ${TXT_RESET}${TXT_RED}${1}${TXT_RESET}\n\n"
+	usage
+	exit "${2}"
+}
+
+[ "${ACTION}" = "help" ] && usage && exit 0
+[ -z "${WRAPSYNC_PARENT_PARENT_DIR_PATH}" ] && raise_error "'WRAPSYNC_PARENT_PARENT_DIR_PATH' is unspecified." 1
+[ -z "${WRAPSYNC_PARENT_DIR_PATH}" ] && raise_error "'WRAPSYNC_PARENT_DIR_PATH' is unspecified." 1
+[ -z "${LOCAL_PARENT_PARENT_DIR_PATH}" ] && raise_error "'LOCAL_PARENT_PARENT_DIR_PATH' is unspecified." 2
+[ -z "${LOCAL_PARENT_DIR_PATH}" ] && raise_error "'LOCAL_PARENT_DIR_PATH' is unspecified." 2
+[ -z "${ACTION}" ] && raise_error "The action in the first argument is unspecified." 3
+[ -z "${DIR_NAME}" ] && raise_error "The directory's name in the second argument is unspecified." 4
+
+cmd='rsync'
+
+# Append flags if any have been declared
+[ ! -z "${FLAGS}" ] && cmd+=" -${FLAGS}"
+# Append excludions if any have been declared
+for ex in "${EXCLUDE[@]}"; do
+	cmd+=" --exclude='${ex}'"
+done
+# Append any remaining command-line arguments as rsync options
+for arg in "${@:3}"; do
+	cmd+=" ${arg}"
+done
+
+readonly service_name_lower=$(echo "${DIR_NAME}" | tr '[:upper:]' '[:lower:]')
+case "${ACTION}" in
+	("pull")
+		if [ "${service_name_lower}" = "all" ]; then
+			cmd+=" ${WRAPSYNC_PARENT_DIR_PATH} ${LOCAL_PARENT_PARENT_DIR_PATH}"
+		else
+			cmd+=" ${WRAPSYNC_PARENT_DIR_PATH}/${DIR_NAME} ${LOCAL_PARENT_DIR_PATH}"
+		fi
+	;;
+	("push")
+		if [ "${service_name_lower}" = "all" ]; then
+			cmd+=" ${LOCAL_PARENT_DIR_PATH} ${WRAPSYNC_PARENT_PARENT_DIR_PATH}"
+		else
+			cmd+=" ${LOCAL_PARENT_DIR_PATH}/${DIR_NAME} ${DEVBOX_PATH}"
+		fi
+	;;
+	(*)
+		raise_error "The first argument should either be 'pull' or 'push'." 5
+	;;
+esac
+
+eval "${cmd}" && {
+	printf "\n\n${TXT_BOLD}${cmd}${TXT_RESET}\n"
+	printf "${TXT_GREEN}Synching finished. The above command has been executed.${TXT_RESET}\n"
+	exit 0
+} || {
+	printf "\n\n${TXT_BOLD}${cmd}${TXT_RESET}\n"
+	raise_error "The above command has been executed." 6
+}
