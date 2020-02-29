@@ -14,15 +14,20 @@
 # $ ws push linux --update
 # $ ws pull windows --delete
 # $ ws push all
+#
+# Errors:
+# 1: There's an unspecified required constant.
+# 2: The `action` argument is incorrect.
+# 3: The `directory` argument is incorrect.
+# 4: `rsync` execution exited with a non-zero code.
 
 readonly USERNAME='CHANGE_ME'
-readonly WRAPSYNC_PARENT_PARENT_DIR_PATH="${USERNAME}@ssh.CHANGE_ME"
-readonly WRAPSYNC_PARENT_DIR_PATH="CHANGE_ME"
-readonly LOCAL_PARENT_PARENT_DIR_PATH="CHANGE_ME"
-readonly LOCAL_PARENT_DIR_PATH="CHANGE_ME"
+readonly REMOTE_PARENT_DIR_PATH="${USERNAME}@ssh.example.com:CHANGE_ME"
+readonly REMOTE_DIR_PATH="${REMOTE_PARENT_DIR_PATH}/CHANGE_ME"
+readonly LOCAL_PARENT_DIR_PATH='CHANGE_ME'
+readonly LOCAL_DIR_PATH="${LOCAL_PARENT_DIR_PATH}/CHANGE_ME"
 readonly FLAGS='aP'
-readonly EXCLUDE=(
-)
+readonly EXCLUDE=()
 readonly ACTION="$(echo "${1}" | tr '[:upper:]' '[:lower:]')"
 readonly DIR_NAME="${2}"
 
@@ -32,36 +37,54 @@ readonly TXT_YELLOW="$(tput setaf 3)"
 readonly TXT_BOLD="$(tput bold)"
 readonly TXT_RESET="$(tput sgr0)"
 
+# Displays usage instructions.
 function usage() {
-	printf "${TXT_BOLD}Usage:${TXT_RESET}
-$ wrapsync <${TXT_YELLOW}${TXT_BOLD}action${TXT_RESET}> \
-<${TXT_YELLOW}${TXT_BOLD}dir${TXT_RESET}> \
-[${TXT_YELLOW}${TXT_BOLD}options${TXT_RESET}]
-
-${TXT_YELLOW}${TXT_BOLD}action${TXT_RESET}: pull/push
-${TXT_YELLOW}${TXT_BOLD}dir${TXT_RESET}: all/directory under ${LOCAL_PARENT_PARENT_DIR_PATH}
-${TXT_YELLOW}${TXT_BOLD}options${TXT_RESET}: any option available to rsync, e.g. \
---delete/--update/etc.\n"
+	echo -e "${TXT_BOLD}Usage:${TXT_RESET}\n"\
+"$ wrapsync <${TXT_YELLOW}${TXT_BOLD}action${TXT_RESET}> "\
+"<${TXT_YELLOW}${TXT_BOLD}dir${TXT_RESET}> "\
+"[${TXT_YELLOW}${TXT_BOLD}options${TXT_RESET}]\n\n"\
+"${TXT_YELLOW}${TXT_BOLD}action${TXT_RESET}: pull/push\n"\
+"${TXT_YELLOW}${TXT_BOLD}dir${TXT_RESET}: all/directory under ${LOCAL_PARENT_DIR_PATH}\n"\
+"${TXT_YELLOW}${TXT_BOLD}options${TXT_RESET}: any option available to rsync, e.g. "\
+"--delete/--update/etc."
 }
 
+# Check action early to bail with the usage information
+case "${ACTION}" in
+	('help'|'--help'|'-help'|'-h')
+		usage && exit 0
+	;;
+esac
+
+# Prints error message and exits with the supplied exit code.
+# @param $1 error message
+# @param $2 exit code
 function raise_error() {
-	printf "${TXT_RED}${TXT_BOLD}ERROR: ${TXT_RESET}${TXT_RED}${1}${TXT_RESET}\n\n"
+	echo -e "${TXT_RED}${TXT_BOLD}ERROR: ${TXT_RESET}${TXT_RED}${1}${TXT_RESET}\n"
 	usage
 	exit "${2}"
 }
 
-[ "${ACTION}" = "help" ] && usage && exit 0
-[ -z "${WRAPSYNC_PARENT_PARENT_DIR_PATH}" ] && raise_error "'WRAPSYNC_PARENT_PARENT_DIR_PATH' is unspecified." 1
-[ -z "${WRAPSYNC_PARENT_DIR_PATH}" ] && raise_error "'WRAPSYNC_PARENT_DIR_PATH' is unspecified." 1
-[ -z "${LOCAL_PARENT_PARENT_DIR_PATH}" ] && raise_error "'LOCAL_PARENT_PARENT_DIR_PATH' is unspecified." 2
-[ -z "${LOCAL_PARENT_DIR_PATH}" ] && raise_error "'LOCAL_PARENT_DIR_PATH' is unspecified." 2
-[ -z "${ACTION}" ] && raise_error "The action in the first argument is unspecified." 3
-[ -z "${DIR_NAME}" ] && raise_error "The directory's name in the second argument is unspecified." 4
+# Check constants
+{ [ -z "${USERNAME}" ] || [[ "${USERNAME}" == *'CHANGE_ME'* ]]; } \
+	&& raise_error ''\''USERNAME'\'' is unspecified.' 1
+{ [ -z "${REMOTE_PARENT_DIR_PATH}" ] || [[ "${REMOTE_PARENT_DIR_PATH}" == *'CHANGE_ME'* ]]; } \
+	&& raise_error ''\''REMOTE_PARENT_DIR_PATH'\'' is unspecified.' 1
+{ [ -z "${REMOTE_DIR_PATH}" ] || [[ "${REMOTE_DIR_PATH}" == *'CHANGE_ME'* ]]; } \
+	&& raise_error ''\''REMOTE_DIR_PATH'\'' is unspecified.' 1
+{ [ -z "${LOCAL_PARENT_DIR_PATH}" ] || [[ "${LOCAL_PARENT_DIR_PATH}" == *'CHANGE_ME'* ]]; } \
+	&& raise_error ''\''LOCAL_PARENT_DIR_PATH'\'' is unspecified.' 1
+{ [ -z "${LOCAL_DIR_PATH}" ] || [[ "${LOCAL_DIR_PATH}" == *'CHANGE_ME'* ]]; } \
+	&& raise_error ''\''LOCAL_DIR_PATH'\'' is unspecified.' 1
 
+# Check arguments
+[ -z "${ACTION}" ] && raise_error 'The action in the first argument is unspecified.' 2
+[ -z "${DIR_NAME}" ] && raise_error 'The directory'\''s name in the second argument is unspecified.' 3
+
+# Define the `rsync` command
 cmd='rsync'
-
 # Append flags if any have been declared
-[ ! -z "${FLAGS}" ] && cmd+=" -${FLAGS}"
+[ -n "${FLAGS}" ] && cmd+=" -${FLAGS}"
 # Append excludions if any have been declared
 for ex in "${EXCLUDE[@]}"; do
 	cmd+=" --exclude='${ex}'"
@@ -73,30 +96,30 @@ done
 
 readonly service_name_lower=$(echo "${DIR_NAME}" | tr '[:upper:]' '[:lower:]')
 case "${ACTION}" in
-	("pull")
-		if [ "${service_name_lower}" = "all" ]; then
-			cmd+=" ${WRAPSYNC_PARENT_DIR_PATH} ${LOCAL_PARENT_PARENT_DIR_PATH}"
+	('pull')
+		if [ "${service_name_lower}" = 'all' ]; then
+			cmd+=" ${REMOTE_DIR_PATH} ${LOCAL_PARENT_DIR_PATH}"
 		else
-			cmd+=" ${WRAPSYNC_PARENT_DIR_PATH}/${DIR_NAME} ${LOCAL_PARENT_DIR_PATH}"
+			cmd+=" ${REMOTE_DIR_PATH}/${DIR_NAME} ${LOCAL_DIR_PATH}"
 		fi
 	;;
-	("push")
-		if [ "${service_name_lower}" = "all" ]; then
-			cmd+=" ${LOCAL_PARENT_DIR_PATH} ${WRAPSYNC_PARENT_PARENT_DIR_PATH}"
+	('push')
+		if [ "${service_name_lower}" = 'all' ]; then
+			cmd+=" ${LOCAL_DIR_PATH} ${REMOTE_PARENT_DIR_PATH}"
 		else
-			cmd+=" ${LOCAL_PARENT_DIR_PATH}/${DIR_NAME} ${DEVBOX_PATH}"
+			cmd+=" ${LOCAL_DIR_PATH}/${DIR_NAME} ${REMOTE_DIR_PATH}"
 		fi
 	;;
 	(*)
-		raise_error "The first argument should either be 'pull' or 'push'." 5
+		raise_error 'The first argument must either be '\''pull'\'' or '\''push'\''.' 2
 	;;
 esac
 
-eval "${cmd}" && {
-	printf "\n\n${TXT_BOLD}${cmd}${TXT_RESET}\n"
-	printf "${TXT_GREEN}Synching finished. The above command has been executed.${TXT_RESET}\n"
+if eval "${cmd}"; then
+	echo -e "\n\n${TXT_BOLD}${cmd}${TXT_RESET}\n"\
+"${TXT_GREEN}Synching finished. The above command has been executed.${TXT_RESET}"
 	exit 0
-} || {
-	printf "\n\n${TXT_BOLD}${cmd}${TXT_RESET}\n"
-	raise_error "The above command has been executed." 6
-}
+else
+	echo -e "\n\n${TXT_BOLD}${cmd}${TXT_RESET}"
+	raise_error "The above command has been executed." 4
+fi
