@@ -8,13 +8,17 @@
 
    Required:
 
-   - `REMOTE_PATH` – an absolute path to the parent directory on the remote machine, e.g. `jon@ssh.example.com:/home/jon/Documents/repositories`,
-   - `LOCAL_PATH` – an absolute path to the local parent directory, e.g. `/usr/Users/jon/Documents/repositories`.
+   - `USERNAME` – SSH login,
+   - `REMOTE_PARENT_DIR_PATH` – an absolute path to the parent directory of `REMOTE_DIR_PATH`, e.g. `${USERNAME}@ssh.example.com:/home/jon/Documents/repositories`; this allows for syncing using the `all` option,
+   - `REMOTE_DIR_PATH` – an absolute path to the remote directory containing everything we may want to sync, e.g. `${REMOTE_PARENT_DIR_PATH}/services`,
+   - `LOCAL_PARENT_DIR_PATH` – an absolute path to the parent directory of `LOCAL_DIR_PATH`, e.g. `/Users/jon/Documents/repositories`; this allows for syncing using the `all` option,
+   - `LOCAL_DIR_PATH` – an absolute path to the local directory containing everything we may want to sync, e.g. `${LOCAL_PARENT_DIR_PATH}/services`.
 
    Optional:
 
-   - `FLAGS` – `rsync` flags; defaults to no flags,
+   - `FLAGS` – `rsync` flags; if no flags are given, this option will be omitted,
    - `EXCLUDE` – an array of patterns of file names/directory names; what matches these patterns will be excluded from synchronising; defaults to no exclusions; e.g.:
+
    ```bash
    readonly EXCLUDE=(
       'node_modules'
