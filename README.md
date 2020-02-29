@@ -27,7 +27,7 @@
 2. Create a symlink to the script for convenience.
 
    ```bash
-   # Example:
+   cd wrapsync
    ln -s "$(pwd)/wrapsync" /usr/local/bin/ws
    ```
 
