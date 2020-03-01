@@ -21,8 +21,8 @@
 # 3: The `directory` argument is incorrect.
 # 4: `rsync` execution exited with a non-zero code.
 
-readonly USERNAME='CHANGE_ME'
-readonly REMOTE_PARENT_DIR_PATH="${USERNAME}@ssh.example.com:CHANGE_ME"
+readonly SSH_USERNAME='CHANGE_ME'
+readonly REMOTE_PARENT_DIR_PATH="${SSH_USERNAME}@ssh.example.com:CHANGE_ME"
 readonly REMOTE_DIR_PATH="${REMOTE_PARENT_DIR_PATH}/CHANGE_ME"
 readonly LOCAL_PARENT_DIR_PATH='CHANGE_ME'
 readonly LOCAL_DIR_PATH="${LOCAL_PARENT_DIR_PATH}/CHANGE_ME"
@@ -66,8 +66,8 @@ function raise_error() {
 }
 
 # Check constants
-{ [ -z "${USERNAME}" ] || [[ "${USERNAME}" == *'CHANGE_ME'* ]]; } \
-	&& raise_error ''\''USERNAME'\'' is unspecified.' 1
+{ [ -z "${SSH_USERNAME}" ] || [[ "${SSH_USERNAME}" == *'CHANGE_ME'* ]]; } \
+	&& raise_error ''\''SSH_USERNAME'\'' is unspecified.' 1
 { [ -z "${REMOTE_PARENT_DIR_PATH}" ] || [[ "${REMOTE_PARENT_DIR_PATH}" == *'CHANGE_ME'* ]]; } \
 	&& raise_error ''\''REMOTE_PARENT_DIR_PATH'\'' is unspecified.' 1
 { [ -z "${REMOTE_DIR_PATH}" ] || [[ "${REMOTE_DIR_PATH}" == *'CHANGE_ME'* ]]; } \
