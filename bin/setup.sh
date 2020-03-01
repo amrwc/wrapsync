@@ -34,3 +34,14 @@ read -rp 'Local directory (prefer absolute paths): ' local_dir_path
 to_be_replaced='LOCAL_DIR_PATH="\$\{LOCAL_PARENT_DIR_PATH\}\/CHANGE_ME"'
 replacement="LOCAL_DIR_PATH='${local_dir_path}'"
 replace_constant "${to_be_replaced}" "${replacement}"
+
+read -rp 'Rsync flags (just the letters) [aP]: ' rsync_flags
+to_be_replaced='FLAGS='\''aP'\'''
+replacement="FLAGS='${rsync_flags:-aP}'"
+replace_constant "${to_be_replaced}" "${replacement}"
+
+read -rp 'Rsync excludes (wrap in quotes and separate with spaces if multiple): ' rsync_excludes
+to_be_replaced='EXCLUDE=\(\)'
+replacement_without_spaces=$(printf "%s" "${rsync_excludes}" | sed -e "s/ /' '/g" | sed -e "s/\"/'/g")
+replacement="EXCLUDE=(${replacement_without_spaces})"
+replace_constant "${to_be_replaced}" "${replacement}"

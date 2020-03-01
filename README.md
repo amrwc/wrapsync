@@ -8,7 +8,7 @@
 
 ```bash
 cd wrapsync
-make
+./bin/setup.sh
 ```
 
 ### Manual setup
