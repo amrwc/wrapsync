@@ -10,6 +10,7 @@ function replace_constant() {
 # Backup the file
 cp "${FILE_NAME}" "${FILE_NAME}.bak"
 
+# Set the required variables
 read -rp 'Your SSH username: ' ssh_username
 to_be_replaced='SSH_USERNAME='\''CHANGE_ME'\'''
 replacement="SSH_USERNAME='${ssh_username}'"
@@ -45,3 +46,6 @@ to_be_replaced='EXCLUDE=\(\)'
 replacement_without_spaces=$(printf "%s" "${rsync_excludes}" | sed -e "s/ /' '/g" | sed -e "s/\"/'/g")
 replacement="EXCLUDE=(${replacement_without_spaces})"
 replace_constant "${to_be_replaced}" "${replacement}"
+
+# Add symlink for convenience
+ln -s "$(pwd)/wrapsync" /usr/local/bin/ws
