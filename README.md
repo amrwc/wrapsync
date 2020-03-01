@@ -4,6 +4,15 @@
 
 ## Setup and usage
 
+### Setup script
+
+```bash
+cd wrapsync
+make
+```
+
+### Manual setup
+
 1. Prepare the variables inside of the `wrapsync` script file.
 
    Required:
