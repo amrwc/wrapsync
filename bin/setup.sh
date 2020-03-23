@@ -16,7 +16,7 @@ to_be_replaced='SSH_USERNAME='\''CHANGE_ME'\'''
 replacement="SSH_USERNAME='${ssh_username}'"
 replace_constant "${to_be_replaced}" "${replacement}"
 
-read -rp 'Remote paretnt dirirectory path (full SSH URL): ' remote_parent_dir_path
+read -rp 'Remote parent directory path (full SSH URL): ' remote_parent_dir_path
 to_be_replaced='REMOTE_PARENT_DIR_PATH="\$\{SSH_USERNAME\}\@ssh.example.com:CHANGE_ME"'
 replacement="REMOTE_PARENT_DIR_PATH='${remote_parent_dir_path}'"
 replace_constant "${to_be_replaced}" "${replacement}"
@@ -48,4 +48,6 @@ replacement="EXCLUDE=(${replacement_without_spaces})"
 replace_constant "${to_be_replaced}" "${replacement}"
 
 # Add symlink for convenience
-ln -s "$(pwd)/wrapsync" /usr/local/bin/ws
+if [ ! -L '/usr/local/bin/ws' ]; then
+	ln -s "$(pwd)/wrapsync" /usr/local/bin/ws
+fi
