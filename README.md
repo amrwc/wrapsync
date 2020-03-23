@@ -11,6 +11,20 @@ cd wrapsync
 ./bin/setup.sh
 ```
 
+Example walkthrough:
+
+```
+cd wrapsync
+./bin/setup.sh
+$ Your SSH username: amrwc
+$ Remote parent directory path (full SSH URL): amrwc@ssh-amrwc.example.com:/programming
+$ Remote directory path (full SSH URL): amrwc@ssh-amrwc.example.com:/programming/project-repository
+$ Local parent directory (prefer absolute paths): /Users/amrwc/Documents/programming
+$ Local directory (prefer absolute paths): /Users/amrwc/Documents/programming/project-repository
+$ Rsync flags (just the letters) [aP]: P
+$ Rsync excludes (wrap in quotes and separate with spaces if multiple): "node_modules vendor bin *.class"
+```
+
 ### Manual setup
 
 1. Prepare the variables inside of the `wrapsync` script file.
@@ -18,9 +32,9 @@ cd wrapsync
    Required:
 
    - `USERNAME` – SSH login,
-   - `REMOTE_PARENT_DIR_PATH` – an absolute path to the parent directory of `REMOTE_DIR_PATH`, e.g. `${USERNAME}@ssh.example.com:/home/jon/Documents/repositories`; this allows for syncing using the `all` option,
+   - `REMOTE_PARENT_DIR_PATH` – an absolute path to the parent directory of `REMOTE_DIR_PATH`, e.g. `${USERNAME}@ssh.example.com:/home/jon/Documents/repositories`; this enables syncing using the `all` option,
    - `REMOTE_DIR_PATH` – an absolute path to the remote directory containing everything we may want to sync, e.g. `${REMOTE_PARENT_DIR_PATH}/services`,
-   - `LOCAL_PARENT_DIR_PATH` – an absolute path to the parent directory of `LOCAL_DIR_PATH`, e.g. `/Users/jon/Documents/repositories`; this allows for syncing using the `all` option,
+   - `LOCAL_PARENT_DIR_PATH` – an absolute path to the parent directory of `LOCAL_DIR_PATH`, e.g. `/Users/jon/Documents/repositories`; this enables syncing using the `all` option,
    - `LOCAL_DIR_PATH` – an absolute path to the local directory containing everything we may want to sync, e.g. `${LOCAL_PARENT_DIR_PATH}/services`.
 
    Optional:
