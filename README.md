@@ -2,6 +2,8 @@
 
 `wrapsync` is a wrapper script for `rsync`. Its main purpose is to simplify `rsync`'ing common directories.
 
+_NOTE: This project is somewhat deprecated in favour of [wrapsync2][wrapsync2]._
+
 ## Setup and usage
 
 ### Setup script
@@ -77,3 +79,5 @@ ws push all
    ws push linux --update
    ws pull windows --delete
    ```
+
+[wrapsync2]: https://github.com/amrwc/wrapsync2
